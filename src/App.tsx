@@ -7,12 +7,41 @@ import styles from './App.module.css';
 
 import { sequence } from '0xsequence'
 
+import { JSONRPCClient } from "json-rpc-2.0";
+
+// create a client
+const client: any = new JSONRPCClient((jsonRPCRequest: any) =>
+  fetch("http://localhost:4000/json-rpc", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(jsonRPCRequest),
+  }).then((response) => {
+    if (response.status === 200) {
+      // Use client.receive when you received a JSON-RPC response.
+      return response
+        .json()
+        .then((jsonRPCResponse) => client.receive(jsonRPCResponse));
+    } else if (jsonRPCRequest.id !== undefined) {
+      return Promise.reject(new Error(response.statusText));
+    }
+  })
+);
+
 const POAPClaim = (props: any) => {
 
   const claim = () => {
     console.log(props.address)
     // run an rpc command to a backend where the api_secret is stored
-    props.wallet.openWallet()
+    client
+    .request("claim", { address: props.address})
+    .then((result: any) => {
+      console.log(result)
+      props.wallet.openWallet()
+      props.setClaimed()
+      props.setSuccess(result)
+    })
   }
 
   return(
@@ -26,15 +55,17 @@ const App: Component = () => {
   const [loggedIn, setLoggedIn] = createSignal<boolean>(false);
   const [address, setAddress] = createSignal<string>('');
   const [walletProp, setWalletProp] = createSignal<any>(null);
+  const [claimed, setClaimed] = createSignal<boolean>(false)
+  const [success, setSuccess] = createSignal<boolean>(false)
 
-  const wallet = sequence.initWallet('mumbai')
+  const wallet = sequence.initWallet('polyon')
 
   const login = async () => {
     const wallet = sequence.getWallet()
     setWalletProp(wallet)
   
     const connectWallet = await wallet.connect({
-      networkId: 80001,
+      networkId: 137,
       app: 'Sequence GDC 2023 Claimer',
       authorize: true,
       settings: {
@@ -63,10 +94,9 @@ const App: Component = () => {
       <br/>
       <br/>
       <br/>
-      <h1 class='cta'>claim your GDC 2023 POAP</h1>
-      <br/>
-      <br/>
-      <br/>
+      {
+        claimed() == false ? <h1 class='cta'>claim your GDC 2023 POAP</h1> : null
+      }
       <br/>
       <br/>
       <br/>
@@ -74,12 +104,23 @@ const App: Component = () => {
       <br/>
       {
         ! loggedIn() 
-          ? 
-        (
+        ? 
+          (
             <button class="connect" onClick={login}>{'connect'}</button>
-        ): (
-          <POAPClaim address={address()} wallet={walletProp()}/>
-        )
+          )
+        : 
+          claimed() == false 
+          ? 
+            (
+              <POAPClaim setSuccess={setSuccess} setClaimed={setClaimed} address={address()} wallet={walletProp()}/>
+            ) 
+          : 
+            success() == true 
+          ? 
+            <p class='confirmation'>Thank you for coming by our booth! <br/><br/>We will follow up with a timely SkyWeaver Silvercard airdrop!</p>
+          :
+          <p class='confirmation'>Something went wrong maybe due to too many requests, please try again when things quiet down</p>
+              
       }
     </div>
   );

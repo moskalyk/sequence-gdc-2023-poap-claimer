@@ -32,7 +32,7 @@ server.addMethod("claim", async ({ address }) => {
         access_token = (await response.json()).access_token //
         console.log(access_token)
     }catch(err){
-        return false
+        return 4
     }
       
     // retrieve qr_hash
@@ -52,10 +52,7 @@ server.addMethod("claim", async ({ address }) => {
         };
 
         const res = await fetch(`https://api.poap.tech/event/${process.env.event_id}/qr-codes`, options)
-
         const response1 = await res.json()
-        console.log(response1)
-        if(response1.statusCode == 400) return false
 
         for (let i = 0; i < response1.length; i++) {
             const element = response1[i];
@@ -67,11 +64,11 @@ server.addMethod("claim", async ({ address }) => {
         }
     }catch(err){
         console.log(err)
-        return false
+        return 4
     }
 
     // if qr_hash was not set, no claim links are left
-    if(qr_hash == undefined) return false
+    if(qr_hash === undefined) return 5
 
     // retrieve secret
     let secret;
@@ -89,14 +86,14 @@ server.addMethod("claim", async ({ address }) => {
 
         const res1 = await fetch(`https://api.poap.tech/actions/claim-qr?qr_hash=${qr_hash}`, options)
         const response2 = await res1.json()
+        console.log('---2---')
         console.log(response2)
-        if(response2.statusCode == 400) return false
 
         secret = response2.secret
 
     }catch(err){
         console.log(err)
-        return false
+        return 4
     }
 
     // make claim
@@ -116,15 +113,21 @@ server.addMethod("claim", async ({ address }) => {
         const res2 = await fetch('https://api.poap.tech/actions/claim-qr', options)
         const response3 = await res2.json()
         console.log('claimed')
+        console.log('---3---')
         console.log(response3)
-        if(response3.statusCode == 400) return false
+
+        if(response3.message == 'QR Claim already claimed') {
+            return 3
+        } else if(response3.message == 'Collector already claimed a code for this Event'){
+            return 2
+        }
 
     }catch(err){
         console.log(err)
-        return false
+        return 4
     }
 
-    return true
+    return 1
 });
 
 const app = express();

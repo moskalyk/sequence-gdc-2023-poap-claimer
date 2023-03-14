@@ -2,13 +2,11 @@ require('dotenv').config()
 const express = require("express");
 const bodyParser = require("body-parser");
 const { JSONRPCServer } = require("json-rpc-2.0");
-
 const cors = require('cors')
 
 const server = new JSONRPCServer();
 
 server.addMethod("claim", async ({ address }) => {
-    console.log(address)
 
     // retrieve access token
     let access_token;
@@ -63,7 +61,6 @@ server.addMethod("claim", async ({ address }) => {
             }
         }
     }catch(err){
-        console.log(err)
         return 4
     }
 
@@ -86,8 +83,6 @@ server.addMethod("claim", async ({ address }) => {
 
         const res1 = await fetch(`https://api.poap.tech/actions/claim-qr?qr_hash=${qr_hash}`, options)
         const response2 = await res1.json()
-        console.log('---2---')
-        console.log(response2)
 
         secret = response2.secret
 
@@ -112,9 +107,6 @@ server.addMethod("claim", async ({ address }) => {
         
         const res2 = await fetch('https://api.poap.tech/actions/claim-qr', options)
         const response3 = await res2.json()
-        console.log('claimed')
-        console.log('---3---')
-        console.log(response3)
 
         if(response3.message == 'QR Claim already claimed') {
             return 3
@@ -123,7 +115,6 @@ server.addMethod("claim", async ({ address }) => {
         }
 
     }catch(err){
-        console.log(err)
         return 4
     }
 

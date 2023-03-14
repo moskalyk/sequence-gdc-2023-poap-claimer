@@ -9,3 +9,4 @@ Status Codes
 - 2: user has already claimed a POAP from event 
 - 3: claim code race condition, must retry
 - 4: poap endpoint service error
+- 5: claim links exhausted

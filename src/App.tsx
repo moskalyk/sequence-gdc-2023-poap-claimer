@@ -1,13 +1,8 @@
 import type { Component } from 'solid-js';
-
 import { createSignal } from "solid-js";
-
-import logo from './logo.svg';
-import styles from './App.module.css';
-
-import { sequence } from '0xsequence'
-
 import { JSONRPCClient } from "json-rpc-2.0";
+import { sequence } from '0xsequence'
+import styles from './App.module.css';
 
 // create a client
 const client: any = new JSONRPCClient((jsonRPCRequest: any) =>
@@ -37,10 +32,13 @@ const POAPClaim = (props: any) => {
     client
     .request("claim", { address: props.address})
     .then((result: any) => {
-      console.log(result)
       props.wallet.openWallet()
       props.setClaimed()
-      props.setSuccess(result)
+      props.setStatus(result)
+    })
+    .catch((err: any) => {
+      props.setClaimed()
+      props.setStatus(3)
     })
   }
 
@@ -56,7 +54,7 @@ const App: Component = () => {
   const [address, setAddress] = createSignal<string>('');
   const [walletProp, setWalletProp] = createSignal<any>(null);
   const [claimed, setClaimed] = createSignal<boolean>(false)
-  const [success, setSuccess] = createSignal<boolean>(false)
+  const [status, setStatus] = createSignal<number>(0)
 
   const wallet = sequence.initWallet('polyon')
 
@@ -112,15 +110,26 @@ const App: Component = () => {
           claimed() == false 
           ? 
             (
-              <POAPClaim setSuccess={setSuccess} setClaimed={setClaimed} address={address()} wallet={walletProp()}/>
+              <POAPClaim setStatus={setStatus} setClaimed={setClaimed} address={address()} wallet={walletProp()}/>
             ) 
           : 
-            success() == true 
-          ? 
-            <p class='confirmation'>Thank you for coming by our booth! <br/><br/>We will follow up with a timely SkyWeaver Silvercard airdrop!</p>
-          :
-          <p class='confirmation'>Something went wrong maybe due to too many requests, please try again when things quiet down</p>
-              
+            status() == 1 
+            ? 
+              <p class='confirmation'>Thank you for coming by our booth! <br/><br/>We will follow up with a timely SkyWeaver Silvercard airdrop!</p>
+            :
+              status() == 2 
+              ?
+                <p class='confirmation'>You've already claimed a POAP to this event</p>
+              :
+                status() == 3 
+                ?
+                  <p class='confirmation'>Something went wrong maybe due to too many requests, <br/>please try again when things quiet down</p>
+                :
+                  status() == 4 
+                  ?
+                    <p class='confirmation'>Seems like the POAP server is down, please try again later</p>
+                  :
+                    <p class='confirmation'>There are no more POAPs available, we hope you enjoyed GDC</p>
       }
     </div>
   );

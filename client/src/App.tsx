@@ -54,7 +54,7 @@ const POAPClaim: any = (props: any) => {
           <button className="connect" onClick={claim}>{'Claim POAP'}</button>
         </>
       :
-        <p className='loading'>claim in progress ...</p>
+        <p className='loading'>Claim in progress ...</p>
     }
   </>
   )

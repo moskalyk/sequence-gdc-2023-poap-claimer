@@ -51,9 +51,10 @@ server.addMethod("claim", async ({ address }) => {
 
         const res = await fetch(`https://api.poap.tech/event/${process.env.event_id}/qr-codes`, options)
         const response1 = await res.json()
-
+        console.log(response1)
         for (let i = 0; i < response1.length; i++) {
             const element = response1[i];
+            
             if(element.claimed == false){
                 console.log(element.qr_hash)
                 qr_hash = element.qr_hash
@@ -107,6 +108,7 @@ server.addMethod("claim", async ({ address }) => {
         
         const res2 = await fetch('https://api.poap.tech/actions/claim-qr', options)
         const response3 = await res2.json()
+        console.log(response3)
 
         if(response3.message == 'QR Claim already claimed') {
             return 3

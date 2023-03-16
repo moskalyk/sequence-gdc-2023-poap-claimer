@@ -6,7 +6,7 @@ import styles from './App.module.css';
 
 // create a client
 const client: any = new JSONRPCClient((jsonRPCRequest: any) =>
-  fetch("https://a08b1ae16d2c.ngrok.app/json-rpc", {
+  fetch("http://localhost:4000/json-rpc", {
     method: "POST",
     headers: {
       "content-type": "application/json",

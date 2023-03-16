@@ -52,7 +52,7 @@ const POAPClaim: any = (props: any) => {
       loadingClaim == false // not sure why this doesn't work
       ? 
         <>
-          <button className="connect" onClick={claim}>{'claim POAP'}</button>
+          <button className="connect" onClick={claim}>{'Claim POAP'}</button>
         </>
       :
         <p className='loading'>claim in progress ...</p>
@@ -105,7 +105,7 @@ const App = () => {
       <br/>
       <br/>
       {
-        claimed == false ? <h1 className='cta'>claim your GDC 2023 POAP</h1> : null
+        claimed == false ? <h1 className="cta">Connect to claim your GDC 2023 POAP</h1>        : null
       }
       <br/>
       <br/>
@@ -127,7 +127,7 @@ const App = () => {
           : 
             status == 1 
             ? 
-              <p className='confirmation'>Thank you for coming by our booth! <br/><br/>We will follow up with a timely SkyWeaver Silvercard airdrop!</p>
+            <p className="confirmation"> Thanks again for visiting the Sequence Lounge. We hope to see you again soon! <br /> <br /> As for the rumored airdrop, all we can say for now is... probably nothing. <br /> <br /> But who knows? We might just surprise you in the future </p>
             :
               status == 2 
               ?
@@ -135,7 +135,7 @@ const App = () => {
               :
                 status == 3 
                 ?
-                  <p className='confirmation'>Something went wrong maybe due to too many requests, <br/>please try again when things quiet down</p>
+                  <p className='confirmation'>Something went wrong maybe due to too many requests. <br/>Please try again when things quiet down</p>
                 :
                   status == 4 
                   ?

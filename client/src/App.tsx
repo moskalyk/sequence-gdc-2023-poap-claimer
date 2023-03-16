@@ -35,14 +35,13 @@ const POAPClaim: any = (props: any) => {
     client
     .request("claim", { address: props.address})
     .then((result: any) => {
-      // props.wallet.openWallet()
       props.setClaimed()
       props.setStatus(result)
       setLoadingClaim(false)
     })
     .catch((err: any) => {
       props.setClaimed()
-      props.setStatus(3)
+      props.setStatus(4)
     })
   }
 
@@ -87,6 +86,10 @@ const App = () => {
     setAddress(connectWallet.session!.accountAddress!)
   }
 
+  const openWallet = () => {
+    walletProp.openWallet()
+  }
+
   return (
     <div className={'App'}>
       <br/>
@@ -116,7 +119,7 @@ const App = () => {
         ! loggedIn 
         ? 
           (
-            <button className="connect" onClick={login}>{'connect'}</button>
+            <button className="connect" onClick={login}>{'Connect'}</button>
           ) 
         : 
           claimed == false 
@@ -127,7 +130,7 @@ const App = () => {
           : 
             status == 1 
             ? 
-            <p className="confirmation"> Thanks again for visiting the Sequence Lounge. We hope to see you again soon! <br /> <br /> As for the rumored airdrop, all we can say for now is... probably nothing. <br /> <br /> But who knows? We might just surprise you in the future </p>
+              <><p className="confirmation"> Thanks again for visiting the Sequence Lounge. We hope to see you again soon! <br /> <br /> As for the rumored airdrop, all we can say for now is... probably nothing. <br /> <br /> But who knows? We might just surprise you in the future </p><br/><br/><button className="connect" onClick={openWallet}>{'Open Wallet'}</button></>
             :
               status == 2 
               ?

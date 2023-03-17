@@ -2,6 +2,7 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/gdc-2023",
   "devDependencies": {
     "react-scripts": "5.0.1"
   },

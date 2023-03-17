@@ -5,7 +5,7 @@ import './App.css';
 
 // create a client
 const client: any = new JSONRPCClient((jsonRPCRequest: any) =>
-  fetch("http://poap.sequence.xyz/json-rpc", {
+  fetch("https://poap.sequence.xyz/json-rpc", {
     method: "POST",
     headers: {
       "content-type": "application/json",

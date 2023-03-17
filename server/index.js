@@ -138,6 +138,10 @@ app.post("/json-rpc", (req, res) => {
   });
 });
 
+app.get("/", (req, res) => {
+    res.sendStatus(200);
+});
+
 app.listen(4000, () => {
     console.log('listening')
 });

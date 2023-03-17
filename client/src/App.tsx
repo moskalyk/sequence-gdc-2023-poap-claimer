@@ -35,9 +35,12 @@ const POAPClaim: any = (props: any) => {
     client
     .request("claim", { address: props.address})
     .then((result: any) => {
-      props.setClaimed()
-      props.setStatus(result)
-      setLoadingClaim(false)
+      // artificial delay to accommodate minting timing
+      setTimeout(() => {
+        props.setClaimed()
+        props.setStatus(result)
+        setLoadingClaim(false)
+      }, 3000)
     })
     .catch((err: any) => {
       props.setClaimed()
@@ -134,7 +137,7 @@ const App = () => {
             :
               status == 2 
               ?
-                <p className='confirmation'>You've already claimed a POAP to this event</p>
+                <p className='confirmation'>You've already claimed a POAP to this event<br/><br/><button className="connect" onClick={openWallet}>{'Open Wallet'}</button></p>
               :
                 status == 3 
                 ?

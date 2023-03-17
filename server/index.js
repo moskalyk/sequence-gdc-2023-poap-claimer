@@ -142,6 +142,20 @@ app.get("/", (req, res) => {
     res.sendStatus(200);
 });
 
-app.listen(4000, () => {
+const expressServer = app.listen(4000, () => {
     console.log('listening')
 });
+
+process.on('SIGTERM', () => {
+    debug('SIGTERM signal received: closing HTTP server')
+    expressServer.close(() => {
+        debug('HTTP server closed')
+    })
+})
+
+process.on('SIGINT', () => {
+    debug('SIGINT signal received: closing HTTP server')
+    expressServer.close(() => {
+        debug('HTTP server closed')
+    })
+})

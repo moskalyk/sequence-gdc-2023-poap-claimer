@@ -1,10 +1,32 @@
-require('dotenv').config()
+require('dotenv/config')
 const express = require("express");
 const bodyParser = require("body-parser");
 const { JSONRPCServer } = require("json-rpc-2.0");
-const cors = require('cors')
+const cors = require('cors');
+const bunyan = require('bunyan');
+const bunyanExpress = require('express-bunyan-logger');
+
+// Setup logging
+logger = bunyan.createLogger({
+    name: 'poap-server',
+    serializers: bunyan.stdSerializers,
+    streams: [
+        {
+        stream: process.stdout
+        }
+    ]
+});
 
 const server = new JSONRPCServer();
+
+const config = {
+    apiKey: process.env.api_key,
+    clientID: process.env.client_id,
+    clientSecret: process.env.client_secret,
+    secretCode: process.env.secret_code,
+    eventID: process.env.event_id,
+    port: process.env.port | 4000
+}
 
 server.addMethod("claim", async ({ address }) => {
 
@@ -15,8 +37,8 @@ server.addMethod("claim", async ({ address }) => {
         const data = {
             audience: "Sequence Wallet",
             grant_type: "client_credentials",
-            client_id: process.env.client_id,
-            client_secret: process.env.client_secret
+            client_id: config.clientID,
+            client_secret: config.clientSecret
         }
 
         const response = await fetch('https://poapauth.auth0.com/oauth/token', {
@@ -32,7 +54,7 @@ server.addMethod("claim", async ({ address }) => {
     }catch(err){
         return 4
     }
-      
+
     // retrieve qr_hash
     let qr_hash;
 
@@ -44,17 +66,17 @@ server.addMethod("claim", async ({ address }) => {
                 accept: 'application/json',
                 'content-type': 'application/json',
                 authorization: `Bearer ${access_token}`,
-                'x-api-key': process.env.api_key
+                'x-api-key': config.apiKey
             },
-            body: JSON.stringify({secret_code: process.env.secret_code})
+            body: JSON.stringify({secret_code: config.secretCode})
         };
 
-        const res = await fetch(`https://api.poap.tech/event/${process.env.event_id}/qr-codes`, options)
+        const res = await fetch(`https://api.poap.tech/event/${config.eventID}/qr-codes`, options)
         const response1 = await res.json()
         console.log(response1)
         for (let i = 0; i < response1.length; i++) {
             const element = response1[i];
-            
+
             if(element.claimed == false){
                 console.log(element.qr_hash)
                 qr_hash = element.qr_hash
@@ -78,7 +100,7 @@ server.addMethod("claim", async ({ address }) => {
             headers: {
                 accept: 'application/json',
                 authorization: `Bearer ${access_token}`,
-                'x-api-key': process.env.api_key
+                'x-api-key': config.apiKey
             }
         };
 
@@ -101,11 +123,11 @@ server.addMethod("claim", async ({ address }) => {
                 accept: 'application/json',
                 'content-type': 'application/json',
                 authorization: `Bearer ${access_token}`,
-                'x-api-key': process.env.api_key
+                'x-api-key': config.apiKey
             },
             body: JSON.stringify({sendEmail: false, address: address, qr_hash: qr_hash, secret: secret})
         };
-        
+
         const res2 = await fetch('https://api.poap.tech/actions/claim-qr', options)
         const response3 = await res2.json()
         console.log(response3)
@@ -124,6 +146,15 @@ server.addMethod("claim", async ({ address }) => {
 });
 
 const app = express();
+app.use(bunyanExpress({
+    name: 'poap-server',
+    serializers: bunyan.stdSerializers,
+    streams: [
+      {
+        stream: process.stdout
+      }
+    ]
+  }))
 app.use(bodyParser.json());
 app.use(cors())
 
@@ -142,20 +173,36 @@ app.get("/", (req, res) => {
     res.sendStatus(200);
 });
 
-const expressServer = app.listen(4000, () => {
-    console.log('listening')
+const expressServer = app.listen(config.port, () => {
+    logger.info(`Listening on port ${config.port}`)
+
+    if (config.apiKey == undefined || config.apiKey == '') {
+        logger.warn("api key not set")
+    }
+    if (config.clientID == undefined || config.clientID == '') {
+        logger.warn("client id not set")
+    }
+    if (config.clientSecret == undefined || config.clientSecret == '') {
+        logger.warn("client secret not set")
+    }
+    if (config.eventID == undefined || config.eventID == '') {
+        logger.warn("event id not set")
+    }
+    if (config.secretCode == undefined || config.secretCode == '') {
+        logger.warn("secret code not set")
+    }
 });
 
 process.on('SIGTERM', () => {
-    debug('SIGTERM signal received: closing HTTP server')
+    logger.info('SIGTERM signal received: closing HTTP server')
     expressServer.close(() => {
-        debug('HTTP server closed')
+        logger.info('HTTP server closed')
     })
 })
 
 process.on('SIGINT', () => {
-    debug('SIGINT signal received: closing HTTP server')
+    logger.info('SIGINT signal received: closing HTTP server')
     expressServer.close(() => {
-        debug('HTTP server closed')
+        logger.info('HTTP server closed')
     })
 })

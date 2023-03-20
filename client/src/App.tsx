@@ -28,7 +28,6 @@ const POAPClaim: any = (props: any) => {
   const [loadingClaim, setLoadingClaim] = useState<any>(false)
 
   const claim = () => {
-    // setTimeout(() => setLoadingClaim(true), 0)
     console.log(props.address)
     setLoadingClaim(true)
     // run an rpc command to a backend where the api_secret is stored
@@ -107,15 +106,9 @@ const App = () => {
       <img className="center" src="https://sequence.xyz/sequence-wordmark.svg" />
       <br/>
       <br/>
-      <br/>
-      <br/>
-      <br/>
       {
         claimed == false ? <h1 className="cta">Connect to claim your GDC 2023 POAP</h1>        : null
       }
-      <br/>
-      <br/>
-      <br/>
       <br/>
       <br/>
       {
@@ -133,7 +126,7 @@ const App = () => {
           : 
             status == 1 
             ? 
-              <><p className="confirmation"> Thanks again for visiting the Sequence Lounge. We hope to see you again soon! <br /> <br /> As for the rumored airdrop, all we can say for now is... probably nothing. <br /> <br /> But who knows? We might just surprise you in the future </p><br/><br/><button className="connect" onClick={openWallet}>{'Open Wallet'}</button></>
+              <><p className="confirmation"> Thanks again for visiting the Sequence Lounge. We hope to see you again soon! <br /> <br /> As for the rumored airdrop, all we can say for now is... probably nothing. <br /> <br /> But who knows? We might just surprise you in the future </p><br/><button className="connect" onClick={openWallet}>{'Open Wallet'}</button></>
             :
               status == 2 
               ?

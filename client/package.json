@@ -2,12 +2,12 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/gdc-2023",
+  "homepage": "/gdcwebinar",
   "devDependencies": {
     "react-scripts": "5.0.1"
   },
   "dependencies": {
-    "0xsequence": "^0.43.21",
+    "0xsequence": "^1.2.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

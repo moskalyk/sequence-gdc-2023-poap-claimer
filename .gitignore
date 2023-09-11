@@ -1,3 +1,5 @@
 node_modules
 dist
-.env
+/server/.env
+/client/bun.lockb
+/server/bun.lockb

@@ -10,3 +10,4 @@ Status Codes
 - 3: claim code race condition, must retry
 - 4: poap endpoint service error
 - 5: claim links exhausted
+- 6: ethauthproof invalid

@@ -2,7 +2,7 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/gdcwebinar",
+  "homepage": "/claim",
   "devDependencies": {
     "react-scripts": "5.0.1"
   },

@@ -5,7 +5,7 @@ import './App.css';
 
 // create a client
 const client: any = new JSONRPCClient((jsonRPCRequest: any) =>
-  fetch("http://localhost:4000/json-rpc", {
+  fetch("http://gdcwebinar.sequence.xyz/json-rpc", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -29,7 +29,7 @@ const POAPClaim: any = (props: any) => {
     const wallet = sequence.getWallet()
   
     const connectWallet = await wallet.connect({
-      app: 'Sequence GDC 2023 Webinar',
+      app: 'Sequence x GDC 2023 Webinar',
       authorize: true,
       settings: {
         theme: 'dark'
@@ -70,7 +70,7 @@ const POAPClaim: any = (props: any) => {
       loadingClaim == false // not sure why this doesn't work
       ? 
         <>
-          <button className="connect" onClick={() => login()}>{'Collect POAP'}</button>
+          <button className="connect" onClick={() => login()}>{'Claim POAP'}</button>
         </>
       :
         <p className='loading'>Mint in progress ...</p>

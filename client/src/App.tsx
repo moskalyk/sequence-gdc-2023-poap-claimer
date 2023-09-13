@@ -5,7 +5,7 @@ import './App.css';
 
 // create a client
 const client: any = new JSONRPCClient((jsonRPCRequest: any) =>
-  fetch("http://gdcwebinar.sequence.xyz/json-rpc", {
+  fetch("https://gdcwebinar.sequence.xyz/json-rpc", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -27,7 +27,7 @@ const POAPClaim: any = (props: any) => {
 
   const login = async () => {
     const wallet = sequence.getWallet()
-  
+
     const connectWallet = await wallet.connect({
       app: 'Sequence x GDC 2023 Webinar',
       authorize: true,
@@ -68,7 +68,7 @@ const POAPClaim: any = (props: any) => {
   <>
     {
       loadingClaim == false // not sure why this doesn't work
-      ? 
+      ?
         <>
           <button className="connect" onClick={() => login()}>{'Claim POAP'}</button>
         </>
@@ -109,37 +109,37 @@ const App = () => {
       <br/>
       <br/>
       {
-        loggedIn == false ? 
+        loggedIn == false ?
         <>
-          <h1 className="cta">Thanks again for attending the Sequence webinar, we hope you enjoyed it!</h1>        
+          <h1 className="cta">Thanks again for attending the Sequence webinar, we hope you enjoyed it!</h1>
           <p>Claim your POAP and Common Hunter by connecting your Sequence wallet! <br/><br/> Do not have one? No worries, you'll be able to create one in just a couple clicks!</p>
         </> : null
       }
       <br/>
       {
         claimed == false
-          ? 
+          ?
             (
               <POAPClaim setLoggedIn={setLoggedIn} loadingClaim={loadingClaim} setStatus={setStatus} setClaimed={setClaimed} address={address} ethAuthProofString={ethAuthProofString} />
-            ) 
-          : 
-            status == 1 
-            ? 
+            )
+          :
+            status == 1
+            ?
               <><p className="confirmation"><h1 className='cta'>You've collected your POAP! <br/><br/>Your Common Hunter is on the way from BoomLand team.</h1><br/><br/>Be ready to have fun on Hunters on Chain and for additional benefits from Sequence in the coming months!</p><button className="connect" onClick={openWallet}>{'Open Wallet'}</button></>
             :
-              status == 2 
+              status == 2
               ?
                 <p className='confirmation'>You've already claimed a POAP to this event<br/><br/><button className="connect" onClick={openWallet}>{'Open Wallet'}</button></p>
               :
-                status == 3 
+                status == 3
                 ?
                   <p className='confirmation'>Something went wrong maybe due to too many requests. <br/>Please try again when things quiet down</p>
                 :
-                  status == 4 
+                  status == 4
                   ?
                     <p className='confirmation'>Seems like the POAP server is down, please try again later</p>
                   :
-                    status == 5 
+                    status == 5
                     ?
                       <p className='confirmation'>There are no more POAPs available, we hope you enjoyed GDC</p>
                     :

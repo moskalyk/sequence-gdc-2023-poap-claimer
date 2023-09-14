@@ -6,6 +6,7 @@ const cors = require('cors');
 const bunyan = require('bunyan');
 const bunyanExpress = require('express-bunyan-logger');
 const { sequence } = require('0xsequence')
+const async = require('async');
 
 // Setup logging
 logger = bunyan.createLogger({
@@ -18,6 +19,7 @@ logger = bunyan.createLogger({
     ]
 });
 
+
 const server = new JSONRPCServer();
 
 const config = {
@@ -29,132 +31,149 @@ const config = {
     port: process.env.port | 4000
 }
 
-server.addMethod("collect", async ({ address, ethAuthProofString }) => {
-
-    const chainId = 'polygon'
-    const api = new sequence.api.SequenceAPIClient('https://api.sequence.app')
+const transactionQueue = async.queue(function(task, callback) {
+    const promise = new Promise(async (resolve, reject) => {
+        const chainId = 'polygon'
+        const api = new sequence.api.SequenceAPIClient('https://api.sequence.app')
     
-    const { isValid } = await api.isValidETHAuthProof({
-        chainId: chainId, walletAddress: address, ethAuthProofString: ethAuthProofString
+        const { isValid } = await api.isValidETHAuthProof({
+            chainId: chainId, walletAddress: task.address, ethAuthProofString: task.ethAuthProofString
+        })
+    
+        if(isValid){
+            // retrieve access token
+            let access_token;
+            try{
+    
+                const data = {
+                    audience: "https://api.poap.tech",
+                    grant_type: "client_credentials",
+                    client_id: config.clientID,
+                    client_secret: config.clientSecret
+                }
+    
+                const response = await fetch('https://poapauth.auth0.com/oauth/token', {
+                method: "POST",
+                headers: {
+                "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+    
+                access_token = (await response.json()).access_token //
+                console.log(access_token)
+            }catch(err){
+                resolve(4)
+            }
+    
+            // retrieve qr_hash
+            let qr_hash;
+    
+            try {
+    
+                let options = {
+                    method: 'POST',
+                    headers: {
+                        accept: 'application/json',
+                        'content-type': 'application/json',
+                        authorization: `Bearer ${access_token}`,
+                        'x-api-key': config.apiKey
+                    },
+                    body: JSON.stringify({secret_code: config.secretCode})
+                };
+    
+                const res = await fetch(`https://api.poap.tech/event/${config.eventID}/qr-codes`, options)
+                const response1 = await res.json()
+                console.log('TESTING')
+                console.log(response1)
+                for (let i = 0; i < response1.length; i++) {
+                    const element = response1[i];
+    
+                    if(element.claimed == false){
+                        console.log(element.qr_hash)
+                        qr_hash = element.qr_hash
+                        break;
+                    }
+                }
+            }catch(err){
+                resolve(4)
+            }
+    
+            // if qr_hash was not set, no claim links are left
+            if(qr_hash === undefined) return 5
+    
+            // retrieve secret
+            let secret;
+    
+            try {
+    
+                options = {
+                    method: 'GET',
+                    headers: {
+                        accept: 'application/json',
+                        authorization: `Bearer ${access_token}`,
+                        'x-api-key': config.apiKey
+                    }
+                };
+    
+                const res1 = await fetch(`https://api.poap.tech/actions/claim-qr?qr_hash=${qr_hash}`, options)
+                const response2 = await res1.json()
+    
+                secret = response2.secret
+    
+            }catch(err){
+                console.log(err)
+                resolve(4)
+            }
+    
+            // make claim
+            try {
+    
+                options = {
+                    method: 'POST',
+                    headers: {
+                        accept: 'application/json',
+                        'content-type': 'application/json',
+                        authorization: `Bearer ${access_token}`,
+                        'x-api-key': config.apiKey
+                    },
+                    body: JSON.stringify({sendEmail: false, address: task.address, qr_hash: qr_hash, secret: secret})
+                };
+    
+                const res2 = await fetch('https://api.poap.tech/actions/claim-qr', options)
+                const response3 = await res2.json()
+                console.log(response3.message)
+                if(response3.message == 'You already minted a POAP for this drop.') {
+                    resolve(2)
+                } else if(response3.message == 'Collector already claimed a code for this Event'){
+                    resolve(2)
+                }
+    
+            }catch(err){
+                resolve(4)
+            }
+            resolve(1)
+        } else {
+            resolve(6)
+        }
     })
+    promise.then((status) => {
+        callback(status)
+    })
+}, 1);
 
-    if(isValid){
-        // retrieve access token
-        let access_token;
-        try{
-
-            const data = {
-                audience: "https://api.poap.tech",
-                grant_type: "client_credentials",
-                client_id: config.clientID,
-                client_secret: config.clientSecret
+server.addMethod("claim", async ({ address, ethAuthProofString }) => {
+    return new Promise((resolve, reject) => {
+        transactionQueue.push({ address, ethAuthProofString }, (status, err) => {
+            if (err) {
+                console.error(err);
+                reject(err); // Reject the promise with an error
+            } else {
+                console.log(status);
+                resolve(status); // Resolve the promise with the status
             }
-
-            const response = await fetch('https://poapauth.auth0.com/oauth/token', {
-            method: "POST",
-            headers: {
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
         });
-
-            access_token = (await response.json()).access_token //
-            console.log(access_token)
-        }catch(err){
-            return 4
-        }
-
-        // retrieve qr_hash
-        let qr_hash;
-
-        try {
-
-            let options = {
-                method: 'POST',
-                headers: {
-                    accept: 'application/json',
-                    'content-type': 'application/json',
-                    authorization: `Bearer ${access_token}`,
-                    'x-api-key': config.apiKey
-                },
-                body: JSON.stringify({secret_code: config.secretCode})
-            };
-
-            const res = await fetch(`https://api.poap.tech/event/${config.eventID}/qr-codes`, options)
-            const response1 = await res.json()
-            console.log('TESTING')
-            console.log(response1)
-            for (let i = 0; i < response1.length; i++) {
-                const element = response1[i];
-
-                if(element.claimed == false){
-                    console.log(element.qr_hash)
-                    qr_hash = element.qr_hash
-                    break;
-                }
-            }
-        }catch(err){
-            return 4
-        }
-
-        // if qr_hash was not set, no claim links are left
-        if(qr_hash === undefined) return 5
-
-        // retrieve secret
-        let secret;
-
-        try {
-
-            options = {
-                method: 'GET',
-                headers: {
-                    accept: 'application/json',
-                    authorization: `Bearer ${access_token}`,
-                    'x-api-key': config.apiKey
-                }
-            };
-
-            const res1 = await fetch(`https://api.poap.tech/actions/claim-qr?qr_hash=${qr_hash}`, options)
-            const response2 = await res1.json()
-
-            secret = response2.secret
-
-        }catch(err){
-            console.log(err)
-            return 4
-        }
-
-        // make claim
-        try {
-
-            options = {
-                method: 'POST',
-                headers: {
-                    accept: 'application/json',
-                    'content-type': 'application/json',
-                    authorization: `Bearer ${access_token}`,
-                    'x-api-key': config.apiKey
-                },
-                body: JSON.stringify({sendEmail: false, address: address, qr_hash: qr_hash, secret: secret})
-            };
-
-            const res2 = await fetch('https://api.poap.tech/actions/claim-qr', options)
-            const response3 = await res2.json()
-
-            if(response3.message == 'QR Claim already claimed') {
-                return 3
-            } else if(response3.message == 'Collector already claimed a code for this Event'){
-                return 2
-            }
-
-        }catch(err){
-            console.log(err)
-            return 4
-        }
-        return 1
-    } else {
-        return 6
-    }
+    });
 });
 
 const app = express();

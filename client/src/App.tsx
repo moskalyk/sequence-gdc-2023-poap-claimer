@@ -46,7 +46,7 @@ const POAPClaim: any = (props: any) => {
     loadingClaim = true;
     // run an rpc command to a backend where the api_secret is stored
     client
-    .request("collect", { address: address, ethAuthProofString: ethAuthProofString})
+    .request("claim", { address: address, ethAuthProofString: ethAuthProofString})
     .then((result: any) => {
       // artificial delay to accommodate minting timing
       setTimeout(() => {
